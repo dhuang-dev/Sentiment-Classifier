@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Readout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EEF2F5;
+    --panel: #FFFFFF;
+    --ink: #1B2430;
+    --ink-soft: #5B6B7A;
+    --grid-line: #D7E0E7;
+    --signal-red: #C0392B;
+    --signal-teal: #2C7873;
+    --border: #C7D2DA;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .instrument {
+    width: 100%;
+    max-width: 560px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 2px 0 var(--border);
+  }
+
+  .instrument__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--grid-line);
+  }
+
+  .instrument__title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .instrument__unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+
+  .instrument__body {
+    padding: 24px;
+  }
+
+  label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    resize: vertical;
+  }
+
+  textarea:focus {
+    outline: 2px solid var(--signal-teal);
+    outline-offset: 1px;
+  }
+
+  button {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--ink);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button:hover { background: #313D4D; }
+  button:disabled { background: var(--ink-soft); cursor: default; }
+
+  .readout {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+    display: none;
+  }
+
+  .readout.is-visible { display: block; }
+
+  .readout__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .readout__label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .readout__value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 20px;
+  }
+
+  .readout__value.positive { color: var(--signal-teal); }
+  .readout__value.negative { color: var(--signal-red); }
+
+  .meter {
+    width: 100%;
+    height: 8px;
+    background: var(--grid-line);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .meter__fill {
+    height: 100%;
+    background: var(--ink);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .meter__fill.positive { background: var(--signal-teal); }
+  .meter__fill.negative { background: var(--signal-red); }
+
+  .status {
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .status.error { color: var(--signal-red); }
+</style>
+</head>
+<body>
+
+  <div class="instrument">
+    <div class="instrument__header">
+      <div class="instrument__title">Sentiment Readout</div>
+      <div class="instrument__unit">v1.0</div>
+    </div>
+
+    <div class="instrument__body">
+      <label for="input-text">Sample text</label>
+      <textarea id="input-text" placeholder="Paste a product or movie review here..."></textarea>
+      <button id="classify-btn">Run classification</button>
+
+      <div class="status" id="status"></div>
+
+      <div class="readout" id="readout">
+        <div class="readout__row">
+          <span class="readout__label">Reading</span>
+          <span class="readout__value" id="label-value">—</span>
+        </div>
+        <div class="readout__row">
+          <span class="readout__label">Confidence</span>
+          <span class="readout__value" id="confidence-value" style="font-size:14px;">—</span>
+        </div>
+        <div class="meter">
+          <div class="meter__fill" id="meter-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Point this at wherever your FastAPI backend is running.
+    // Local dev default matches: uvicorn main:app --reload --port 8000
+    const API_URL = "http://localhost:8000/classify";
+
+    const btn = document.getElementById("classify-btn");
+    const textarea = document.getElementById("input-text");
+    const statusEl = document.getElementById("status");
+    const readoutEl = document.getElementById("readout");
+    const labelEl = document.getElementById("label-value");
+    const confidenceEl = document.getElementById("confidence-value");
+    const meterFillEl = document.getElementById("meter-fill");
+
+    async function classify() {
+      const text = textarea.value.trim();
+      if (!text) {
+        statusEl.textContent = "Enter some text first.";
+        statusEl.className = "status error";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Running...";
+      statusEl.textContent = "";
+      statusEl.className = "status";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+
+        const data = await response.json();
+        const isPositive = data.label.toUpperCase() === "POSITIVE";
+        const pct = (data.confidence * 100).toFixed(1);
+
+        labelEl.textContent = data.label;
+        labelEl.className = "readout__value " + (isPositive ? "positive" : "negative");
+
+        confidenceEl.textContent = `${pct}%`;
+
+        meterFillEl.style.width = `${pct}%`;
+        meterFillEl.className = "meter__fill " + (isPositive ? "positive" : "negative");
+
+        readoutEl.classList.add("is-visible");
+      } catch (err) {
+        statusEl.textContent = `Couldn't reach the API. Is the backend running? (${err.message})`;
+        statusEl.className = "status error";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Run classification";
+      }
+    }
+
+    btn.addEventListener("click", classify);
+  </script>
+
+</body>
+</html>
