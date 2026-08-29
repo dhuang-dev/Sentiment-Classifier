@@ -75,3 +75,7 @@ git push -u origin main
 - CORS is currently wide open (`allow_origins=["*"]`) so the frontend can
   call the backend from any origin during development. Before deploying
   publicly, restrict this to your actual frontend's URL in `main.py`.
+
+## Additionally
+- Windows Powershell command: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+- Needed if user is able to run script
