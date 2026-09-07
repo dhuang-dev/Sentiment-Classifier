@@ -1,0 +1,37 @@
+Open a terminal and navigate to the backend folder
+cd into the sentiment-app/backend folder you downloaded. Everything backend-related happens from here.
+
+2
+Create a virtual environment
+Run: python -m venv venv. This creates an isolated Python environment so these packages don't clash with anything else on your machine. 
+You only need to do this once.
+  
+3
+Activate the virtual environment
+Mac/Linux: source venv/bin/activate. Windows: venv\Scripts\activate. Your terminal prompt should now show (venv) at the front, confirming it's active. 
+You'll need to activate this every time you open a new terminal to work on the project.
+  
+4
+Install the backend dependencies
+Run: pip install -r requirements.txt. This installs FastAPI, uvicorn, transformers, torch, and pydantic — everything main.py needs. 
+This will take a few minutes the first time (torch is a large download).
+  
+5
+Start the backend server
+Run: uvicorn main:app --reload --port 8000. Leave this terminal window open and running — it's now actively serving your API. 
+The first request will be a bit slow while it downloads/loads the DistilBERT model.
+
+6
+Confirm the backend is alive
+Open a browser and go to http://localhost:8000 — you should see {"status": "ok", "message": "Sentiment classifier API is running"}. 
+If you see that, the backend is working correctly.
+
+7
+Open the frontend
+In your file explorer, find frontend/index.html and double-click it to open it in your browser 
+(no server needed for this part — it's just a static file). It's already configured to talk to localhost:8000.
+  
+8
+Test it end to end
+Type a review into the text box and click 'Run classification'. 
+As long as the backend terminal from Step 5 is still running, you should see a live prediction with a label and confidence bar appear.
